@@ -1,0 +1,7 @@
+Run these git commands in cmd in ChummyGames folder
+- git status
+- git add .
+- git status
+- git commit -m "Message Explaining your changes"
+- git status
+- git push
