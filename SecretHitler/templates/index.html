@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chummy Games</title>
+    You are not connected... Hmm...
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+    <script src="static/utils.js"></script>
+    <script src="static/login.js"></script>
+    <script src="static/host.js"></script>
+    <script src="static/player.js"></script>
+    <script src="static/game.js"></script>
+    <script>
+        var iAmHost = "{{ host }}";
+        console.log('HELLO??'+iAmHost+"|")
+        if(iAmHost == 'YES'){
+            register_me_as_host();
+        }
+        else{
+            loginScreen('');
+        }
+    </script>
+    
+</head>
+<body>
+</body>
+</html>

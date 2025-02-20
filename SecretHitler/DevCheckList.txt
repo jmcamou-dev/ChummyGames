@@ -1,0 +1,3 @@
+- UI could look better haha
+- (FIXED) Should be 3 vote retries not 4
+- When someone votes Nein revel that they voted
