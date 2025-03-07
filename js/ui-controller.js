@@ -232,9 +232,9 @@ class UIController {
             
             // Add styling based on symbol
             if (this.game.gameState[index] === 'X') {
-                cell.style.color = '#E74C3C';
+                cell.style.color = '#00FF00';
             } else if (this.game.gameState[index] === 'O') {
-                cell.style.color = '#3498DB';
+                cell.style.color = '#0000FF';
             } else {
                 cell.style.color = '';
             }
