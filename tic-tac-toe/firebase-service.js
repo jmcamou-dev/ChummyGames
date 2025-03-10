@@ -19,6 +19,9 @@ class TicTacToeFirebaseService {
             gameActive: this.game.gameActive,
             playerX: true,
             playerO: false,
+            playerXScore: 0,
+            playerOScore: 0,
+            ties: 0,
             createdAt: firebase.database.ServerValue.TIMESTAMP
         });
     }
@@ -49,6 +52,43 @@ class TicTacToeFirebaseService {
      */
     updateGame(gameId, gameState) {
         return this.database.ref(`tic-tac-toe/games/${gameId}`).update(gameState);
+    }
+    
+    /**
+     * Update scores in Firebase
+     * @param {string} gameId - The game ID
+     * @param {number} playerXScore - Player X's score
+     * @param {number} playerOScore - Player O's score
+     * @param {number} ties - Number of ties
+     * @returns {Promise} Promise that resolves when the update is complete
+     */
+    updateScores(gameId, playerXScore, playerOScore, ties) {
+        return this.database.ref(`tic-tac-toe/games/${gameId}`).update({
+            playerXScore: playerXScore,
+            playerOScore: playerOScore,
+            ties: ties
+        });
+    }
+    
+    /**
+     * Start a new round
+     * @param {string} gameId - The game ID
+     * @param {Array} board - The board state
+     * @param {string} currentPlayer - The current player
+     * @param {number} playerXScore - Player X's score
+     * @param {number} playerOScore - Player O's score
+     * @param {number} ties - Number of ties
+     * @returns {Promise} Promise that resolves when the update is complete
+     */
+    startNewRound(gameId, board, currentPlayer, playerXScore, playerOScore, ties) {
+        return this.database.ref(`tic-tac-toe/games/${gameId}`).update({
+            board: board,
+            currentPlayer: currentPlayer,
+            gameActive: true,
+            playerXScore: playerXScore,
+            playerOScore: playerOScore,
+            ties: ties
+        });
     }
     
     /**
