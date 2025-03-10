@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Center</title>
+    <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+    <div id="app"></div>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    
+    <!-- Firebase Configuration -->
+    <script src="firebase-config.js"></script>
+    
+    <!-- Shared Utilities -->
+    <script src="shared/dom-utils.js"></script>
+    
+    <!-- Tic-Tac-Toe Game -->
+    <script src="tic-tac-toe/game-logic.js"></script>
+    <script src="tic-tac-toe/firebase-service.js"></script>
+    <script src="tic-tac-toe/ui-controller.js"></script>
+    
+    <!-- Rock-Paper-Scissors Game -->
+    <script src="rock-paper-scissors/game-logic.js"></script>
+    <script src="rock-paper-scissors/firebase-service.js"></script>
+    <script src="rock-paper-scissors/ui-controller.js"></script>
+    
+    <!-- Main App -->
+    <script src="app.js"></script>
+</body>
+</html>
