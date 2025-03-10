@@ -41,6 +41,18 @@ class TicTacToeUIController {
             id: 'ttt-status' 
         }, 'Start a new game or join an existing one');
         
+        // Create score display
+        this.elements.scoreDisplay = DOMUtils.createElement('div', { 
+            className: 'score-display',
+            style: {
+                display: 'none',
+                marginBottom: '15px',
+                fontSize: '16px',
+                fontWeight: 'bold',
+                textAlign: 'center'
+            }
+        });
+        
         // Create the game board
         this.elements.board = DOMUtils.createElement('div', { className: 'board', id: 'ttt-board' });
         
@@ -64,6 +76,12 @@ class TicTacToeUIController {
             onClick: () => this.startNewGame()
         }, 'Start New Game');
         
+        this.elements.nextRoundButton = DOMUtils.createElement('button', { 
+            id: 'ttt-next-round',
+            style: { display: 'none' },
+            onClick: () => this.startNextRound()
+        }, 'Next Round');
+        
         this.elements.gameCode = DOMUtils.createElement('div', { 
             className: 'game-code', 
             id: 'ttt-game-code',
@@ -77,6 +95,7 @@ class TicTacToeUIController {
         
         DOMUtils.appendChildren(controls, [
             this.elements.newGameButton,
+            this.elements.nextRoundButton,
             this.elements.gameCode,
             this.elements.playerInfo
         ]);
@@ -103,6 +122,7 @@ class TicTacToeUIController {
         // Add everything to the game container
         DOMUtils.appendChildren(gameContainer, [
             this.elements.status,
+            this.elements.scoreDisplay,
             this.elements.board,
             controls,
             joinContainer
@@ -139,12 +159,32 @@ class TicTacToeUIController {
             // Update game status message
             this.updateStatus(result);
             
+            // Update scores
+            this.updateScoreDisplay();
+            
             // Update Firebase
-            this.firebaseService.updateGame(this.game.gameId, {
+            const updateData = {
                 board: this.game.gameState,
                 currentPlayer: this.game.currentPlayer,
                 gameActive: this.game.gameActive
-            });
+            };
+            
+            // Add score information if game is over
+            if (!this.game.gameActive) {
+                if (this.game.playerSymbol === 'X') {
+                    updateData.playerXScore = this.game.playerScore;
+                    updateData.playerOScore = this.game.opponentScore;
+                } else {
+                    updateData.playerXScore = this.game.opponentScore;
+                    updateData.playerOScore = this.game.playerScore;
+                }
+                updateData.ties = this.game.ties;
+                
+                // Show next round button
+                this.elements.nextRoundButton.style.display = 'block';
+            }
+            
+            this.firebaseService.updateGame(this.game.gameId, updateData);
         }
     }
     
@@ -162,6 +202,13 @@ class TicTacToeUIController {
         this.elements.gameCode.style.display = 'block';
         this.elements.playerInfo.textContent = `You are playing as X`;
         this.elements.status.textContent = `Game started! Waiting for player O to join...`;
+        
+        // Show score display
+        this.elements.scoreDisplay.style.display = 'block';
+        this.updateScoreDisplay();
+        
+        // Hide join container
+        this.elements.joinCodeInput.parentNode.style.display = 'none';
         
         // Create game in Firebase
         this.firebaseService.createGame(this.game.gameId);
@@ -195,11 +242,49 @@ class TicTacToeUIController {
             this.elements.playerInfo.textContent = `You are playing as O`;
             this.elements.status.textContent = `Game joined! ${this.game.currentPlayer}'s turn`;
             
+            // Show score display
+            this.elements.scoreDisplay.style.display = 'block';
+            this.updateScoreDisplay();
+            
+            // Hide join container
+            this.elements.joinCodeInput.parentNode.style.display = 'none';
+            
             // Listen for game updates
             this.listenForGameUpdates();
         } else {
             this.elements.status.textContent = 'Game not found or already ended';
         }
+    }
+    
+    /**
+     * Start the next round
+     */
+    startNextRound() {
+        this.game.resetRound();
+        
+        // Update UI
+        this.updateBoard();
+        this.elements.status.textContent = `New round started! Player ${this.game.currentPlayer}'s turn`;
+        this.elements.nextRoundButton.style.display = 'none';
+        
+        // Update Firebase with new round
+        let playerXScore, playerOScore;
+        if (this.game.playerSymbol === 'X') {
+            playerXScore = this.game.playerScore;
+            playerOScore = this.game.opponentScore;
+        } else {
+            playerXScore = this.game.opponentScore;
+            playerOScore = this.game.playerScore;
+        }
+        
+        this.firebaseService.startNewRound(
+            this.game.gameId,
+            this.game.gameState,
+            this.game.currentPlayer,
+            playerXScore,
+            playerOScore,
+            this.game.ties
+        );
     }
     
     /**
@@ -212,22 +297,40 @@ class TicTacToeUIController {
             
             // Update UI
             this.updateBoard();
+            this.updateScoreDisplay();
             
             if (!this.game.gameActive) {
                 // Check for winner or draw
                 const winner = this.game.checkWinner();
                 if (winner) {
-                    this.elements.status.textContent = `Player ${winner} has won!`;
+                    if (winner === this.game.playerSymbol) {
+                        this.elements.status.textContent = `You won!`;
+                    } else {
+                        this.elements.status.textContent = `Opponent won!`;
+                    }
+                    this.elements.nextRoundButton.style.display = 'block';
                 } else if (!this.game.gameState.includes('')) {
                     this.elements.status.textContent = `Game ended in a draw!`;
+                    this.elements.nextRoundButton.style.display = 'block';
                 }
             } else {
                 // Both players joined
                 if (gameData.playerX && gameData.playerO) {
-                    this.elements.status.textContent = `Player ${this.game.currentPlayer}'s turn`;
+                    if (this.game.currentPlayer === this.game.playerSymbol) {
+                        this.elements.status.textContent = `Your turn`;
+                    } else {
+                        this.elements.status.textContent = `Opponent's turn`;
+                    }
                 }
             }
         });
+    }
+    
+    /**
+     * Update the score display
+     */
+    updateScoreDisplay() {
+        this.elements.scoreDisplay.textContent = `You: ${this.game.playerScore} | Ties: ${this.game.ties} | Opponent: ${this.game.opponentScore}`;
     }
     
     /**
@@ -254,11 +357,19 @@ class TicTacToeUIController {
      */
     updateStatus(result) {
         if (result.winner) {
-            this.elements.status.textContent = `Player ${result.winner} has won!`;
+            if (result.winner === this.game.playerSymbol) {
+                this.elements.status.textContent = `You won!`;
+            } else {
+                this.elements.status.textContent = `Opponent won!`;
+            }
         } else if (result.isDraw) {
             this.elements.status.textContent = `Game ended in a draw!`;
         } else {
-            this.elements.status.textContent = `Player ${this.game.currentPlayer}'s turn`;
+            if (this.game.currentPlayer === this.game.playerSymbol) {
+                this.elements.status.textContent = `Your turn`;
+            } else {
+                this.elements.status.textContent = `Opponent's turn`;
+            }
         }
     }
     
