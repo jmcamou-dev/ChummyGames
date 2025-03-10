@@ -3,14 +3,14 @@
  * Replace these values with your own Firebase project details
  */
 const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-    databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_PROJECT_ID.appspot.com",
-    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-    appId: "YOUR_APP_ID"
-};
+    apiKey: "AIzaSyDVbt_8GuRuHJRPAN7jFXbs_lJUfUHNxHE",
+    authDomain: "chummy-games.firebaseapp.com",
+    databaseURL: "https://chummy-games-default-rtdb.firebaseio.com",
+    projectId: "chummy-games",
+    storageBucket: "chummy-games.firebasestorage.app",
+    messagingSenderId: "869241598273",
+    appId: "1:869241598273:web:d97492b7308f785c37f1c0"
+  };
 
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
