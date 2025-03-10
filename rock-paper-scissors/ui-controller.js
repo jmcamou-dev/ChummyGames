@@ -462,4 +462,4 @@ class RPSUIController {
 }
 
 // Create a global instance
-const rpsUIController = new RPSUI
+const rpsUIController = new RPSUIController(rpsGame, rpsFirebaseService);
