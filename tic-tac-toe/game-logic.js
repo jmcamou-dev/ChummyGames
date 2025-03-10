@@ -10,6 +10,11 @@ class TicTacToeGame {
         this.gameId = null;
         this.playerSymbol = null;
         
+        // Score tracking
+        this.playerScore = 0;
+        this.opponentScore = 0;
+        this.ties = 0;
+        
         // Winning combinations
         this.winningConditions = [
             [0, 1, 2], [3, 4, 5], [6, 7, 8], // Rows
@@ -27,12 +32,22 @@ class TicTacToeGame {
     }
     
     /**
-     * Reset the game state
+     * Reset the game state for a new round
      */
-    resetGame() {
+    resetRound() {
         this.gameState = ['', '', '', '', '', '', '', '', ''];
         this.currentPlayer = 'X';
         this.gameActive = true;
+    }
+    
+    /**
+     * Reset the entire game
+     */
+    resetGame() {
+        this.resetRound();
+        this.playerScore = 0;
+        this.opponentScore = 0;
+        this.ties = 0;
     }
     
     /**
@@ -53,7 +68,16 @@ class TicTacToeGame {
         const winner = this.checkWinner();
         const isDraw = !this.gameState.includes('') && !winner;
         
-        if (winner || isDraw) {
+        // Update scores
+        if (winner) {
+            if (winner === this.playerSymbol) {
+                this.playerScore++;
+            } else {
+                this.opponentScore++;
+            }
+            this.gameActive = false;
+        } else if (isDraw) {
+            this.ties++;
             this.gameActive = false;
         } else {
             // Switch player
@@ -66,7 +90,10 @@ class TicTacToeGame {
             isDraw: isDraw,
             gameState: [...this.gameState],
             currentPlayer: this.currentPlayer,
-            gameActive: this.gameActive
+            gameActive: this.gameActive,
+            playerScore: this.playerScore,
+            opponentScore: this.opponentScore,
+            ties: this.ties
         };
     }
     
@@ -93,6 +120,16 @@ class TicTacToeGame {
             this.gameState = data.board;
             this.currentPlayer = data.currentPlayer;
             this.gameActive = data.gameActive;
+            
+            if (this.playerSymbol === 'X') {
+                this.playerScore = data.playerXScore || 0;
+                this.opponentScore = data.playerOScore || 0;
+            } else {
+                this.playerScore = data.playerOScore || 0;
+                this.opponentScore = data.playerXScore || 0;
+            }
+            
+            this.ties = data.ties || 0;
         }
     }
 }
