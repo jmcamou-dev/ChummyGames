@@ -417,37 +417,104 @@ class RPSUIController {
     }
     
     /**
-     * Process round result
-     * @param {Object} gameData - The current game data from Firebase
-     */
-    processRoundResult(gameData) {
-        // Process the result
-        const playerChoice = this.game.playerChoice;
-        const opponentChoice = this.game.playerNumber === 1 ? gameData.player2Choice : gameData.player1Choice;
+ * Process round result
+ * @param {Object} gameData - The current game data from Firebase
+ */
+processRoundResult(gameData) {
+    // Process the result
+    const playerChoice = this.game.playerChoice;
+    const opponentChoice = this.game.playerNumber === 1 ? gameData.player2Choice : gameData.player1Choice;
+    
+    if (playerChoice && opponentChoice) {
+        // Both players have made choices
+        const result = this.game.processRoundResult(opponentChoice);
         
-        if (playerChoice && opponentChoice) {
-            // Both players have made choices
-            const result = this.game.processRoundResult(opponentChoice);
-            
-            // Update UI
-            this.updatePlayerChoice(playerChoice);
-            this.updateOpponentChoice(opponentChoice);
-            this.updateScore(result.playerScore, result.opponentScore);
-            
-            // Show result message
-            if (result.result === 'win') {
-                this.elements.status.textContent = 'You win this round!';
-            } else if (result.result === 'lose') {
-                this.elements.status.textContent = 'You lose this round!';
-            } else {
-                this.elements.status.textContent = "It's a tie!";
+        // Update UI
+        this.updatePlayerChoice(playerChoice);
+        this.updateOpponentChoice(opponentChoice);
+        this.updateScore(result.playerScore, result.opponentScore);
+        
+        // Show result message
+        if (result.result === 'win') {
+            this.elements.status.textContent = 'You win this round!';
+        } else if (result.result === 'lose') {
+            this.elements.status.textContent = 'You lose this round!';
+        } else {
+            this.elements.status.textContent = "It's a tie!";
+        }
+        
+        // Show next round button
+        this.elements.nextRoundButton.style.display = 'block';
+        
+        // Reset round in Firebase after a delay
+        setTimeout(() => {
+            this.firebaseService.resetRound(
+                this.game.gameId,
+                this.game.playerNumber === 1 ? result.playerScore : result.opponentScore,
+                this.game.playerNumber === 1 ? result.opponentScore : result.playerScore
+            );
+        }, 2000);
+    }
+}
+
+/**
+ * Listen for game updates from Firebase
+ */
+listenForGameUpdates() {
+    this.firebaseService.listenForUpdates(this.game.gameId, (gameData) => {
+        if (!gameData) return;
+        
+        // Update opponent name if available
+        if (this.game.playerNumber === 1 && gameData.player2Name) {
+            this.elements.player2Label.textContent = gameData.player2Name;
+        } else if (this.game.playerNumber === 2 && gameData.player1Name) {
+            this.elements.player2Label.textContent = gameData.player1Name;
+        }
+        
+        // Check if both players have connected
+        if (gameData.player1Connected && gameData.player2Connected) {
+            // Game is ready to play
+            if (!this.elements.choices.style.display || this.elements.choices.style.display === 'none') {
+                this.elements.choices.style.display = 'flex';
+                this.elements.result.style.display = 'flex';
+                this.elements.status.textContent = 'Both players connected! Make your choice.';
             }
             
-            // Show next round button
-            this.elements.nextRoundButton.style.display = 'block';
-            
-            // Reset round in Firebase after a delay
-            setTimeout(() => {
-                this.firebaseService.resetRound(
-                    this.game.gameId,
-                    this.game.playerNumber === 1 ? result
+            // Process round results if both players have made choices
+            if (gameData.player1Choice && gameData.player2Choice) {
+                this.processRoundResult(gameData);
+            }
+            // Check if opponent has made a choice
+            else if (
+                (this.game.playerNumber === 1 && gameData.player2Choice && this.game.playerChoice) ||
+                (this.game.playerNumber === 2 && gameData.player1Choice && this.game.playerChoice)
+            ) {
+                this.elements.status.textContent = 'Opponent has made their choice. Waiting for you...';
+            }
+            // Check if we are waiting for the opponent
+            else if (
+                (this.game.playerNumber === 1 && gameData.player1Choice && !gameData.player2Choice) ||
+                (this.game.playerNumber === 2 && gameData.player2Choice && !gameData.player1Choice)
+            ) {
+                this.elements.status.textContent = 'Waiting for opponent...';
+            }
+            // Check if we need to start a new round
+            else if (!gameData.player1Choice && !gameData.player2Choice) {
+                this.elements.nextRoundButton.style.display = 'none';
+                if (this.game.playerChoice || this.game.opponentChoice) {
+                    this.startNextRound();
+                }
+            }
+        }
+    });
+}
+
+/**
+ * Clean up when leaving the game
+ */
+cleanup() {
+    this.firebaseService.stopListening(this.game.gameId);
+}
+
+// Create a global instance
+const rpsUIController = new RPSUIController(rpsGame, rpsFirebaseService);

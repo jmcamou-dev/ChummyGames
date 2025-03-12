@@ -6,6 +6,8 @@ class TicTacToeUIController {
         this.game = game;
         this.firebaseService = firebaseService;
         this.elements = {};
+        this.playerName = localStorage.getItem('playerName') || 'Player';
+        this.opponentName = 'Opponent';
     }
     
     /**
@@ -15,6 +17,44 @@ class TicTacToeUIController {
     init(container) {
         this.createUI(container);
         this.attachEventListeners();
+    }
+    
+    /**
+     * Set player name
+     * @param {string} name - The player's name
+     */
+    setPlayerName(name) {
+        this.playerName = name;
+        this.updatePlayerLabels();
+    }
+    
+    /**
+     * Update player name during gameplay
+     * @param {string} name - The player's name
+     */
+    updatePlayerName(name) {
+        this.playerName = name;
+        this.updatePlayerLabels();
+        
+        // Update game data in Firebase if game is active
+        if (this.game.gameActive && this.game.gameId) {
+            const playerField = this.game.playerSymbol === 'X' ? 'playerXName' : 'playerOName';
+            this.firebaseService.database.ref(`tic-tac-toe/games/${this.game.gameId}/${playerField}`).set(name);
+        }
+    }
+    
+    /**
+     * Update player labels in the UI
+     */
+    updatePlayerLabels() {
+        if (this.elements.scoreDisplay) {
+            this.updateScoreDisplay();
+        }
+        
+        if (this.elements.playerInfo) {
+            const symbol = this.game.playerSymbol || '';
+            this.elements.playerInfo.textContent = `${this.playerName} (${symbol})`;
+        }
     }
     
     /**
@@ -200,7 +240,7 @@ class TicTacToeUIController {
         this.updateBoard();
         this.elements.gameCode.textContent = `Game Code: ${this.game.gameId}`;
         this.elements.gameCode.style.display = 'block';
-        this.elements.playerInfo.textContent = `You are playing as X`;
+        this.elements.playerInfo.textContent = `${this.playerName} (X)`;
         this.elements.status.textContent = `Game started! Waiting for player O to join...`;
         
         // Show score display
@@ -211,7 +251,19 @@ class TicTacToeUIController {
         this.elements.joinCodeInput.parentNode.style.display = 'none';
         
         // Create game in Firebase
-        this.firebaseService.createGame(this.game.gameId);
+        this.firebaseService.database.ref(`tic-tac-toe/games/${this.game.gameId}`).set({
+            board: this.game.gameState,
+            currentPlayer: this.game.currentPlayer,
+            gameActive: this.game.gameActive,
+            playerX: true,
+            playerO: false,
+            playerXScore: 0,
+            playerOScore: 0,
+            playerXName: this.playerName,
+            playerOName: null,
+            ties: 0,
+            createdAt: firebase.database.ServerValue.TIMESTAMP
+        });
         
         // Listen for game updates
         this.listenForGameUpdates();
@@ -228,19 +280,30 @@ class TicTacToeUIController {
         this.game.playerSymbol = 'O';
         
         // Try to join the game
-        const gameData = await this.firebaseService.joinGame(code);
+        const snapshot = await this.firebaseService.database.ref(`tic-tac-toe/games/${code}`).once('value');
+        const gameData = snapshot.val();
         
-        if (gameData) {
+        if (gameData && gameData.gameActive) {
+            // Mark player O as joined with name
+            await this.firebaseService.database.ref(`tic-tac-toe/games/${code}`).update({
+                playerO: true,
+                playerOName: this.playerName
+            });
+            
+            // Store opponent name if available
+            if (gameData.playerXName) {
+                this.opponentName = gameData.playerXName;
+            }
+            
             // Update game state
             this.game.updateFromData(gameData);
-            this.game.gameActive = gameData.gameActive;
             
             // Update UI
             this.updateBoard();
             this.elements.gameCode.textContent = `Game Code: ${this.game.gameId}`;
             this.elements.gameCode.style.display = 'block';
-            this.elements.playerInfo.textContent = `You are playing as O`;
-            this.elements.status.textContent = `Game joined! ${this.game.currentPlayer}'s turn`;
+            this.elements.playerInfo.textContent = `${this.playerName} (O)`;
+            this.elements.status.textContent = `Game joined! ${this.game.currentPlayer === 'X' ? this.opponentName : this.playerName}'s turn`;
             
             // Show score display
             this.elements.scoreDisplay.style.display = 'block';
@@ -251,8 +314,11 @@ class TicTacToeUIController {
             
             // Listen for game updates
             this.listenForGameUpdates();
+            
+            return gameData;
         } else {
             this.elements.status.textContent = 'Game not found or already ended';
+            return null;
         }
     }
     
@@ -264,7 +330,7 @@ class TicTacToeUIController {
         
         // Update UI
         this.updateBoard();
-        this.elements.status.textContent = `New round started! Player ${this.game.currentPlayer}'s turn`;
+        this.elements.status.textContent = `New round started! ${this.game.currentPlayer === this.game.playerSymbol ? this.playerName : this.opponentName}'s turn`;
         this.elements.nextRoundButton.style.display = 'none';
         
         // Update Firebase with new round
@@ -292,6 +358,13 @@ class TicTacToeUIController {
      */
     listenForGameUpdates() {
         this.firebaseService.listenForUpdates(this.game.gameId, (gameData) => {
+            // Update opponent name if available
+            if (this.game.playerSymbol === 'X' && gameData.playerOName) {
+                this.opponentName = gameData.playerOName;
+            } else if (this.game.playerSymbol === 'O' && gameData.playerXName) {
+                this.opponentName = gameData.playerXName;
+            }
+            
             // Update game state
             this.game.updateFromData(gameData);
             
@@ -306,7 +379,7 @@ class TicTacToeUIController {
                     if (winner === this.game.playerSymbol) {
                         this.elements.status.textContent = `You won!`;
                     } else {
-                        this.elements.status.textContent = `Opponent won!`;
+                        this.elements.status.textContent = `${this.opponentName} won!`;
                     }
                     this.elements.nextRoundButton.style.display = 'block';
                 } else if (!this.game.gameState.includes('')) {
@@ -319,7 +392,7 @@ class TicTacToeUIController {
                     if (this.game.currentPlayer === this.game.playerSymbol) {
                         this.elements.status.textContent = `Your turn`;
                     } else {
-                        this.elements.status.textContent = `Opponent's turn`;
+                        this.elements.status.textContent = `${this.opponentName}'s turn`;
                     }
                 }
             }
@@ -330,7 +403,7 @@ class TicTacToeUIController {
      * Update the score display
      */
     updateScoreDisplay() {
-        this.elements.scoreDisplay.textContent = `You: ${this.game.playerScore} | Ties: ${this.game.ties} | Opponent: ${this.game.opponentScore}`;
+        this.elements.scoreDisplay.textContent = `${this.playerName}: ${this.game.playerScore} | Ties: ${this.game.ties} | ${this.opponentName}: ${this.game.opponentScore}`;
     }
     
     /**
@@ -360,7 +433,7 @@ class TicTacToeUIController {
             if (result.winner === this.game.playerSymbol) {
                 this.elements.status.textContent = `You won!`;
             } else {
-                this.elements.status.textContent = `Opponent won!`;
+                this.elements.status.textContent = `${this.opponentName} won!`;
             }
         } else if (result.isDraw) {
             this.elements.status.textContent = `Game ended in a draw!`;
@@ -368,7 +441,7 @@ class TicTacToeUIController {
             if (this.game.currentPlayer === this.game.playerSymbol) {
                 this.elements.status.textContent = `Your turn`;
             } else {
-                this.elements.status.textContent = `Opponent's turn`;
+                this.elements.status.textContent = `${this.opponentName}'s turn`;
             }
         }
     }
