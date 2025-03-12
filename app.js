@@ -7,6 +7,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Current active game controller
     let activeGame = null;
     
+    // Player name handling
+    let playerName = localStorage.getItem('playerName') || 'Player';
+    
     /**
      * Show the game selection screen
      */
@@ -14,6 +17,35 @@ document.addEventListener('DOMContentLoaded', () => {
         DOMUtils.clearElement(appContainer);
         
         const heading = DOMUtils.createElement('h1', {}, 'Game Center');
+        
+        // Player name control
+        const nameContainer = DOMUtils.createElement('div', { className: 'player-name-container' });
+        
+        const nameLabel = DOMUtils.createElement('label', { for: 'player-name' }, 'Your Name: ');
+        
+        const nameInput = DOMUtils.createElement('input', { 
+            type: 'text',
+            id: 'player-name',
+            value: playerName,
+            placeholder: 'Enter your name'
+        });
+        
+        const saveNameButton = DOMUtils.createElement('button', { 
+            className: 'save-name-button',
+            onClick: () => {
+                const newName = nameInput.value.trim();
+                if (newName) {
+                    playerName = newName;
+                    localStorage.setItem('playerName', playerName);
+                    // Update the displayed name
+                    nameDisplay.textContent = `Playing as: ${playerName}`;
+                }
+            }
+        }, 'Save');
+        
+        const nameDisplay = DOMUtils.createElement('div', { className: 'current-player-name' }, `Playing as: ${playerName}`);
+        
+        DOMUtils.appendChildren(nameContainer, [nameLabel, nameInput, saveNameButton, nameDisplay]);
         
         const selectionContainer = DOMUtils.createElement('div', { className: 'game-selection' });
         
@@ -66,7 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
         DOMUtils.appendChildren(selectionContainer, [gamesGrid]);
         
         // Add all to the app container
-        DOMUtils.appendChildren(appContainer, [heading, selectionContainer]);
+        DOMUtils.appendChildren(appContainer, [heading, nameContainer, selectionContainer]);
     };
     
     /**
@@ -83,15 +115,56 @@ document.addEventListener('DOMContentLoaded', () => {
         const gameContainer = DOMUtils.createElement('div', { className: 'container' });
         appContainer.appendChild(gameContainer);
         
+        // Add player name display at the top
+        const playerNameDisplay = DOMUtils.createElement('div', { className: 'player-name-display' }, `Playing as: ${playerName}`);
+        
+        // Add name editing feature
+        const editNameButton = DOMUtils.createElement('button', {
+            className: 'edit-name-button',
+            onClick: () => {
+                const newName = prompt('Enter your name:', playerName);
+                if (newName && newName.trim()) {
+                    playerName = newName.trim();
+                    localStorage.setItem('playerName', playerName);
+                    playerNameDisplay.textContent = `Playing as: ${playerName}`;
+                    
+                    // Update name in active game if applicable
+                    if (activeGame && activeGame.updatePlayerName) {
+                        activeGame.updatePlayerName(playerName);
+                    }
+                }
+            }
+        }, 'Edit Name');
+        
+        const nameContainer = DOMUtils.createElement('div', { className: 'game-name-container' });
+        DOMUtils.appendChildren(nameContainer, [playerNameDisplay, editNameButton]);
+        
+        gameContainer.appendChild(nameContainer);
+        
         // Initialize the appropriate game
         if (gameType === 'tic-tac-toe') {
             ticTacToeUIController.init(gameContainer);
+            ticTacToeUIController.setPlayerName(playerName);
             activeGame = ticTacToeUIController;
         } else if (gameType === 'rock-paper-scissors') {
             rpsUIController.init(gameContainer);
+            rpsUIController.setPlayerName(playerName);
             activeGame = rpsUIController;
         }
     }
+    
+    // Expose function to update player name
+    window.updatePlayerName = function(name) {
+        if (name && name.trim()) {
+            playerName = name.trim();
+            localStorage.setItem('playerName', playerName);
+            
+            // Update name in active game if applicable
+            if (activeGame && activeGame.updatePlayerName) {
+                activeGame.updatePlayerName(playerName);
+            }
+        }
+    };
     
     // Show the game selection screen initially
     window.showGameSelection();

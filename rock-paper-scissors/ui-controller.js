@@ -6,6 +6,7 @@ class RPSUIController {
         this.game = game;
         this.firebaseService = firebaseService;
         this.elements = {};
+        this.playerName = localStorage.getItem('playerName') || 'Player';
     }
     
     /**
@@ -15,6 +16,33 @@ class RPSUIController {
     init(container) {
         this.createUI(container);
         this.attachEventListeners();
+    }
+    
+    /**
+     * Set player name
+     * @param {string} name - The player's name
+     */
+    setPlayerName(name) {
+        this.playerName = name;
+        
+        // Update UI if elements exist
+        if (this.elements.player1Label) {
+            this.elements.player1Label.textContent = this.playerName;
+        }
+    }
+    
+    /**
+     * Update player name during gameplay
+     * @param {string} name - The player's name
+     */
+    updatePlayerName(name) {
+        this.setPlayerName(name);
+        
+        // Update game data in Firebase if game is active
+        if (this.game.gameActive && this.game.gameId) {
+            const playerField = this.game.playerNumber === 1 ? 'player1Name' : 'player2Name';
+            this.firebaseService.database.ref(`rps/games/${this.game.gameId}/${playerField}`).set(name);
+        }
     }
     
     /**
@@ -49,18 +77,18 @@ class RPSUIController {
         
         // Player 1 display
         const player1Display = DOMUtils.createElement('div', { className: 'rps-player' });
-        const player1Label = DOMUtils.createElement('div', { className: 'rps-player-label' }, 'You');
+        this.elements.player1Label = DOMUtils.createElement('div', { className: 'rps-player-label' }, this.playerName);
         this.elements.playerChoice = DOMUtils.createElement('div', { className: 'rps-player-choice' });
-        DOMUtils.appendChildren(player1Display, [player1Label, this.elements.playerChoice]);
+        DOMUtils.appendChildren(player1Display, [this.elements.player1Label, this.elements.playerChoice]);
         
         // VS label
         const vsLabel = DOMUtils.createElement('div', { className: 'rps-vs' }, 'VS');
         
         // Player 2 display
         const player2Display = DOMUtils.createElement('div', { className: 'rps-player' });
-        const player2Label = DOMUtils.createElement('div', { className: 'rps-player-label' }, 'Opponent');
+        this.elements.player2Label = DOMUtils.createElement('div', { className: 'rps-player-label' }, 'Opponent');
         this.elements.opponentChoice = DOMUtils.createElement('div', { className: 'rps-player-choice' });
-        DOMUtils.appendChildren(player2Display, [player2Label, this.elements.opponentChoice]);
+        DOMUtils.appendChildren(player2Display, [this.elements.player2Label, this.elements.opponentChoice]);
         
         DOMUtils.appendChildren(this.elements.result, [player1Display, vsLabel, player2Display]);
         
@@ -275,7 +303,7 @@ class RPSUIController {
      * @param {number} opponentScore - The opponent's score
      */
     updateScore(playerScore, opponentScore) {
-        this.elements.score.textContent = `Score: You ${playerScore} - ${opponentScore} Opponent`;
+        this.elements.score.textContent = `Score: ${this.playerName} ${playerScore} - ${opponentScore} Opponent`;
     }
     
     /**
@@ -298,8 +326,19 @@ class RPSUIController {
         // Hide join container
         this.elements.joinCodeInput.parentNode.style.display = 'none';
         
-        // Create game in Firebase
-        this.firebaseService.createGame(this.game.gameId);
+        // Create game in Firebase with player name
+        this.firebaseService.database.ref(`rps/games/${this.game.gameId}`).set({
+            player1Connected: true,
+            player2Connected: false,
+            player1Choice: null,
+            player2Choice: null,
+            player1Score: 0,
+            player2Score: 0,
+            player1Name: this.playerName,
+            player2Name: null,
+            roundActive: true,
+            createdAt: firebase.database.ServerValue.TIMESTAMP
+        });
         
         // Listen for game updates
         this.listenForGameUpdates();
@@ -316,9 +355,16 @@ class RPSUIController {
         this.game.playerNumber = 2;
         
         // Try to join the game
-        const gameData = await this.firebaseService.joinGame(code);
+        const snapshot = await this.firebaseService.database.ref(`rps/games/${code}`).once('value');
+        const gameData = snapshot.val();
         
-        if (gameData) {
+        if (gameData && !gameData.player2Connected) {
+            // Mark player 2 as joined with name
+            await this.firebaseService.database.ref(`rps/games/${code}`).update({
+                player2Connected: true,
+                player2Name: this.playerName
+            });
+            
             // Initialize game state
             this.game.gameActive = true;
             this.game.resetRound();
@@ -342,8 +388,11 @@ class RPSUIController {
             
             // Listen for game updates
             this.listenForGameUpdates();
+            
+            return gameData;
         } else {
             this.elements.status.textContent = 'Game not found or already full';
+            return null;
         }
     }
     
@@ -401,65 +450,4 @@ class RPSUIController {
             setTimeout(() => {
                 this.firebaseService.resetRound(
                     this.game.gameId,
-                    this.game.playerNumber === 1 ? result.playerScore : result.opponentScore,
-                    this.game.playerNumber === 1 ? result.opponentScore : result.playerScore
-                );
-            }, 2000);
-        }
-    }
-    
-    /**
-     * Listen for game updates from Firebase
-     */
-    listenForGameUpdates() {
-        this.firebaseService.listenForUpdates(this.game.gameId, (gameData) => {
-            if (!gameData) return;
-            
-            // Check if both players have connected
-            if (gameData.player1Connected && gameData.player2Connected) {
-                // Game is ready to play
-                if (!this.elements.choices.style.display || this.elements.choices.style.display === 'none') {
-                    this.elements.choices.style.display = 'flex';
-                    this.elements.result.style.display = 'flex';
-                    this.elements.status.textContent = 'Both players connected! Make your choice.';
-                }
-                
-                // Process round results if both players have made choices
-                if (gameData.player1Choice && gameData.player2Choice) {
-                    this.processRoundResult(gameData);
-                }
-                // Check if opponent has made a choice
-                else if (
-                    (this.game.playerNumber === 1 && gameData.player2Choice && this.game.playerChoice) ||
-                    (this.game.playerNumber === 2 && gameData.player1Choice && this.game.playerChoice)
-                ) {
-                    this.elements.status.textContent = 'Opponent has made their choice. Waiting for you...';
-                }
-                // Check if we are waiting for the opponent
-                else if (
-                    (this.game.playerNumber === 1 && gameData.player1Choice && !gameData.player2Choice) ||
-                    (this.game.playerNumber === 2 && gameData.player2Choice && !gameData.player1Choice)
-                ) {
-                    this.elements.status.textContent = 'Waiting for opponent...';
-                }
-                // Check if we need to start a new round
-                else if (!gameData.player1Choice && !gameData.player2Choice) {
-                    this.elements.nextRoundButton.style.display = 'none';
-                    if (this.game.playerChoice || this.game.opponentChoice) {
-                        this.startNextRound();
-                    }
-                }
-            }
-        });
-    }
-    
-    /**
-     * Clean up when leaving the game
-     */
-    cleanup() {
-        this.firebaseService.stopListening(this.game.gameId);
-    }
-}
-
-// Create a global instance
-const rpsUIController = new RPSUIController(rpsGame, rpsFirebaseService);
+                    this.game.playerNumber === 1 ? result
