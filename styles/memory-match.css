@@ -1,0 +1,257 @@
+/* Memory Match Game Specific Styles */
+.memory-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.memory-status {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 15px;
+    text-align: center;
+    color: #333;
+}
+
+.memory-timer {
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    padding: 5px 15px;
+    background-color: #f8f8f8;
+    border-radius: 5px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.memory-score-container {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    max-width: 500px;
+    margin-bottom: 20px;
+    padding: 10px;
+    background-color: #f8f8f8;
+    border-radius: 5px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.memory-player-score,
+.memory-opponent-score {
+    font-weight: bold;
+    padding: 5px 10px;
+    border-radius: 3px;
+}
+
+.memory-player-score {
+    background-color: #e1f5fe;
+    color: #0277bd;
+}
+
+.memory-opponent-score {
+    background-color: #ffebee;
+    color: #c62828;
+}
+
+.memory-board {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+    max-width: 600px;
+    width: 100%;
+}
+
+/* Card styles */
+.memory-card {
+    position: relative;
+    height: 100px;
+    cursor: pointer;
+    perspective: 1000px;
+    transform-style: preserve-3d;
+    transition: transform 0.5s;
+}
+
+.memory-card.revealed {
+    transform: rotateY(180deg);
+    cursor: default;
+}
+
+.memory-card.matched {
+    transform: rotateY(180deg);
+    cursor: default;
+    animation: pulse 1s infinite alternate;
+}
+
+@keyframes pulse {
+    from { box-shadow: 0 0 5px rgba(76, 175, 80, 0.5); }
+    to { box-shadow: 0 0 15px rgba(76, 175, 80, 0.8); }
+}
+
+.memory-card-front,
+.memory-card-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 5px;
+    font-size: 24px;
+    transition: all 0.3s ease;
+}
+
+.memory-card-front {
+    background-color: #3498db;
+    color: white;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    z-index: 2;
+}
+
+.memory-card-back {
+    background-color: #f0f0f0;
+    transform: rotateY(180deg);
+    font-size: 32px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.memory-card:hover .memory-card-front {
+    background-color: #2980b9;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.memory-card.revealed .memory-card-front,
+.memory-card.matched .memory-card-front {
+    box-shadow: none;
+}
+
+.memory-difficulty {
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.memory-difficulty-label {
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.memory-difficulty-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+.memory-difficulty-button {
+    padding: 8px 16px;
+    background-color: #f8f8f8;
+    color: #333;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.memory-difficulty-button:hover {
+    background-color: #e8e8e8;
+}
+
+.memory-difficulty-button.selected {
+    background-color: #4CAF50;
+    color: white;
+    border-color: #4CAF50;
+}
+
+.memory-controls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 20px;
+    gap: 10px;
+}
+
+.memory-new-game-button {
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.memory-new-game-button:hover {
+    background-color: #45a049;
+}
+
+.memory-game-code {
+    padding: 10px;
+    background-color: #f8f8f8;
+    border-radius: 5px;
+    font-family: monospace;
+    margin-top: 10px;
+}
+
+.memory-join-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.memory-join-input {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 16px;
+    width: 200px;
+}
+
+.memory-join-button {
+    padding: 10px 20px;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.memory-join-button:hover {
+    background-color: #2980b9;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+    .memory-board {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .memory-card {
+        height: 80px;
+    }
+    
+    .memory-card-front,
+    .memory-card-back {
+        font-size: 20px;
+    }
+}
+
+@media (max-width: 400px) {
+    .memory-board {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+    
+    .memory-card {
+        height: 70px;
+    }
+    
+    .memory-difficulty-buttons {
+        flex-direction: column;
+        gap: 5px;
+    }
+}

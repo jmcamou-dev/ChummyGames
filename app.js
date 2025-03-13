@@ -91,8 +91,28 @@ document.addEventListener('DOMContentLoaded', () => {
             rpsButton
         ]);
         
+        // Memory Match card
+        const memoryCard = DOMUtils.createElement('div', { 
+            className: 'game-card',
+            onClick: () => showGame('memory-match')
+        });
+        
+        const memoryIcon = DOMUtils.createElement('div', { className: 'game-icon' }, '🃏🎴');
+        const memoryTitle = DOMUtils.createElement('div', { className: 'game-title' }, 'Memory Match');
+        const memoryDesc = DOMUtils.createElement('div', { className: 'game-description' }, 
+            'Test your memory by finding matching pairs of cards!'
+        );
+        const memoryButton = DOMUtils.createElement('button', {}, 'Play');
+        
+        DOMUtils.appendChildren(memoryCard, [
+            memoryIcon,
+            memoryTitle,
+            memoryDesc,
+            memoryButton
+        ]);
+        
         // Add game cards to grid
-        DOMUtils.appendChildren(gamesGrid, [ticTacToeCard, rpsCard]);
+        DOMUtils.appendChildren(gamesGrid, [ticTacToeCard, rpsCard, memoryCard]);
         
         // Add to selection container
         DOMUtils.appendChildren(selectionContainer, [gamesGrid]);
@@ -103,7 +123,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     /**
      * Show a specific game
-     * @param {string} gameType - The type of game to show ('tic-tac-toe' or 'rock-paper-scissors')
+     * @param {string} gameType - The type of game to show ('tic-tac-toe', 'rock-paper-scissors', or 'memory-match')
      */
     function showGame(gameType) {
         // Clean up previous game if exists
@@ -150,6 +170,10 @@ document.addEventListener('DOMContentLoaded', () => {
             rpsUIController.init(gameContainer);
             rpsUIController.setPlayerName(playerName);
             activeGame = rpsUIController;
+        } else if (gameType === 'memory-match') {
+            memoryMatchUIController.init(gameContainer);
+            memoryMatchUIController.setPlayerName(playerName);
+            activeGame = memoryMatchUIController;
         }
     }
     
@@ -172,6 +196,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Optional: clean up old games on app start
     ticTacToeFirebaseService.cleanupOldGames();
     rpsFirebaseService.cleanupOldGames();
+    memoryMatchFirebaseService.cleanupOldGames();
     
     // Log app startup
     console.log('Game Center initialized');
