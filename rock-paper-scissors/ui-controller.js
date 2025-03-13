@@ -515,6 +515,7 @@ class RPSUIController {
     cleanup() {
         this.firebaseService.stopListening(this.game.gameId);
     }
+}
 
 // Create a global instance
 const rpsUIController = new RPSUIController(rpsGame, rpsFirebaseService);
