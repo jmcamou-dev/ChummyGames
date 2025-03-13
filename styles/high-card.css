@@ -1,0 +1,369 @@
+/* High Card Game Specific Styles */
+.high-card-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.high-card-status {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    text-align: center;
+    color: #333;
+    padding: 10px;
+    border-radius: 5px;
+    background-color: #f8f8f8;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    width: 100%;
+}
+
+.high-card-round-info {
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 15px;
+    padding: 5px 15px;
+    background-color: #f1f1f1;
+    border-radius: 5px;
+    color: #555;
+}
+
+.high-card-player-info-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.high-card-player-column,
+.high-card-opponent-column {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    width: 40%;
+}
+
+.high-card-player-name,
+.high-card-opponent-name {
+    font-size: 18px;
+    font-weight: bold;
+    padding: 5px 10px;
+    border-radius: 5px;
+}
+
+.high-card-player-name {
+    background-color: #e1f5fe;
+    color: #0277bd;
+}
+
+.high-card-opponent-name {
+    background-color: #ffebee;
+    color: #c62828;
+}
+
+.high-card-player-score,
+.high-card-opponent-score {
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.high-card-vs {
+    font-size: 24px;
+    font-weight: bold;
+    color: #666;
+}
+
+.high-card-playing-area {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 30px;
+    height: 180px;
+}
+
+.high-card-player-area,
+.high-card-opponent-area {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 40%;
+    height: 100%;
+}
+
+.high-card-center-area {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 20%;
+    height: 100%;
+}
+
+.high-card-card-played {
+    width: 120px;
+    height: 170px;
+    position: relative;
+}
+
+.high-card-round-result {
+    font-size: 24px;
+    font-weight: bold;
+    padding: 10px 20px;
+    border-radius: 8px;
+    text-align: center;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    animation: fadeInOut 2s ease-in-out;
+}
+
+.high-card-round-result.win {
+    background-color: #c8e6c9;
+    color: #2e7d32;
+}
+
+.high-card-round-result.lose {
+    background-color: #ffcdd2;
+    color: #c62828;
+}
+
+.high-card-round-result.tie {
+    background-color: #e0e0e0;
+    color: #424242;
+}
+
+@keyframes fadeInOut {
+    0% { opacity: 0; transform: scale(0.8); }
+    20% { opacity: 1; transform: scale(1.1); }
+    40% { opacity: 1; transform: scale(1); }
+    80% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+.high-card-hand {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    width: 100%;
+    margin-bottom: 30px;
+    padding: 15px;
+    background-color: #f1f1f1;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1) inset;
+}
+
+.high-card-card {
+    width: 80px;
+    height: 120px;
+    background-color: white;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    position: relative;
+    transition: transform 0.3s, box-shadow 0.3s;
+    overflow: hidden;
+}
+
+.high-card-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.high-card-card.played {
+    width: 100%;
+    height: 100%;
+    cursor: default;
+}
+
+.high-card-card.played:hover {
+    transform: none;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.high-card-card-value,
+.high-card-card-suit {
+    text-align: center;
+    font-weight: bold;
+}
+
+.high-card-card-value {
+    font-size: 22px;
+    margin-top: 5px;
+}
+
+.high-card-card-suit {
+    font-size: 36px;
+    margin-bottom: 5px;
+}
+
+.high-card-card-value.red,
+.high-card-card-suit.red {
+    color: #e53935;
+}
+
+.high-card-card-value.black,
+.high-card-card-suit.black {
+    color: #212121;
+}
+
+.high-card-card-back {
+    width: 100%;
+    height: 100%;
+    background-color: #3f51b5;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 36px;
+    color: white;
+    border-radius: 8px;
+}
+
+.high-card-card.hidden {
+    cursor: default;
+}
+
+.high-card-controls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+    width: 100%;
+}
+
+.high-card-new-game-button,
+.high-card-start-round-button,
+.high-card-join-button {
+    padding: 12px 25px;
+    font-size: 16px;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+    font-weight: bold;
+}
+
+.high-card-new-game-button {
+    background-color: #4CAF50;
+}
+
+.high-card-new-game-button:hover {
+    background-color: #388E3C;
+    transform: translateY(-2px);
+}
+
+.high-card-start-round-button {
+    background-color: #FFC107;
+    color: #333;
+}
+
+.high-card-start-round-button:hover {
+    background-color: #FFA000;
+    transform: translateY(-2px);
+}
+
+.high-card-game-code {
+    padding: 10px 15px;
+    background-color: #f5f5f5;
+    border-radius: 5px;
+    font-family: monospace;
+    border: 1px solid #ddd;
+    font-size: 16px;
+}
+
+.high-card-join-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    margin-top: 15px;
+    width: 100%;
+    max-width: 300px;
+}
+
+.high-card-join-input {
+    padding: 10px 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 16px;
+    width: 100%;
+    outline: none;
+}
+
+.high-card-join-input:focus {
+    border-color: #2196F3;
+    box-shadow: 0 0 5px rgba(33, 150, 243, 0.3);
+}
+
+.high-card-join-button {
+    background-color: #2196F3;
+    width: 100%;
+}
+
+.high-card-join-button:hover {
+    background-color: #1976D2;
+    transform: translateY(-2px);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .high-card-player-info-container {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .high-card-player-column,
+    .high-card-opponent-column {
+        width: 100%;
+    }
+    
+    .high-card-vs {
+        margin: 5px 0;
+    }
+    
+    .high-card-card {
+        width: 70px;
+        height: 100px;
+    }
+    
+    .high-card-card-value {
+        font-size: 18px;
+    }
+    
+    .high-card-card-suit {
+        font-size: 30px;
+    }
+}
+
+@media (max-width: 480px) {
+    .high-card-card {
+        width: 60px;
+        height: 90px;
+    }
+    
+    .high-card-card-value {
+        font-size: 16px;
+    }
+    
+    .high-card-card-suit {
+        font-size: 26px;
+    }
+    
+    .high-card-round-result {
+        font-size: 20px;
+        padding: 8px 16px;
+    }
+}

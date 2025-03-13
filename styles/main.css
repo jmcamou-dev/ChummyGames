@@ -196,3 +196,5 @@ input {
 /* Import game-specific styles */
 @import url('tic-tac-toe.css');
 @import url('rock-paper-scissors.css');
+@import url('memory-match.css');
+@import url('high-card.css');

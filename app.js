@@ -111,8 +111,28 @@ document.addEventListener('DOMContentLoaded', () => {
             memoryButton
         ]);
         
+        // High Card game
+        const highCardCard = DOMUtils.createElement('div', { 
+            className: 'game-card',
+            onClick: () => showGame('high-card')
+        });
+        
+        const highCardIcon = DOMUtils.createElement('div', { className: 'game-icon' }, '🂡♠️');
+        const highCardTitle = DOMUtils.createElement('div', { className: 'game-title' }, 'High Card');
+        const highCardDesc = DOMUtils.createElement('div', { className: 'game-description' }, 
+            'Play your cards wisely! Highest card wins each round.'
+        );
+        const highCardButton = DOMUtils.createElement('button', {}, 'Play');
+        
+        DOMUtils.appendChildren(highCardCard, [
+            highCardIcon,
+            highCardTitle,
+            highCardDesc,
+            highCardButton
+        ]);
+        
         // Add game cards to grid
-        DOMUtils.appendChildren(gamesGrid, [ticTacToeCard, rpsCard, memoryCard]);
+        DOMUtils.appendChildren(gamesGrid, [ticTacToeCard, rpsCard, memoryCard, highCardCard]);
         
         // Add to selection container
         DOMUtils.appendChildren(selectionContainer, [gamesGrid]);
@@ -123,7 +143,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     /**
      * Show a specific game
-     * @param {string} gameType - The type of game to show ('tic-tac-toe', 'rock-paper-scissors', or 'memory-match')
+     * @param {string} gameType - The type of game to show
      */
     function showGame(gameType) {
         // Clean up previous game if exists
@@ -174,6 +194,10 @@ document.addEventListener('DOMContentLoaded', () => {
             memoryMatchUIController.init(gameContainer);
             memoryMatchUIController.setPlayerName(playerName);
             activeGame = memoryMatchUIController;
+        } else if (gameType === 'high-card') {
+            highCardUIController.init(gameContainer);
+            highCardUIController.setPlayerName(playerName);
+            activeGame = highCardUIController;
         }
     }
     
@@ -197,6 +221,7 @@ document.addEventListener('DOMContentLoaded', () => {
     ticTacToeFirebaseService.cleanupOldGames();
     rpsFirebaseService.cleanupOldGames();
     memoryMatchFirebaseService.cleanupOldGames();
+    highCardFirebaseService.cleanupOldGames();
     
     // Log app startup
     console.log('Game Center initialized');
