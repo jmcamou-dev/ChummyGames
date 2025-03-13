@@ -28,7 +28,7 @@ class TicTacToeGame {
      * @returns {string} A random 6-character ID
      */
     generateGameId() {
-        return Math.random().toString(36).substr(2, 6).toUpperCase();
+        return Math.random().toString(36).substr(2, 3).toUpperCase();
     }
     
     /**
