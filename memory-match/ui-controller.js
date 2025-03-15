@@ -341,7 +341,7 @@ class MemoryMatchUIController {
             const cardElement = DOMUtils.createElement('div', {
                 className: `memory-card ${card.state}`,
                 'data-id': card.id,
-                onClick: (e) => this.handleCardClick(e.target)
+                onClick: (e) => this.handleCardClick(e)
             });
             
             const cardFront = DOMUtils.createElement('div', {
@@ -363,13 +363,14 @@ class MemoryMatchUIController {
     handleCardClick(cardElement) {
         // Get card ID
         const cardId = cardElement.getAttribute('data-id');
+        console.log("handleCardClick_1 "+cardId.toString())
         
         // Attempt to flip the card
         const result = this.game.flipCard(cardId);
         
-        console.log("CLICKEDED")
+        console.log("handleCardClick_2")
         if (result.valid) {
-            console.log("CLICKEDED-1")
+            console.log("handleCardClick_3")
             // Update card appearance
             cardElement.className = 'memory-card revealed';
             
