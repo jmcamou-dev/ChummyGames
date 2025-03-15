@@ -403,6 +403,7 @@ class MemoryMatchUIController {
                 }
             }
         }
+        this.renderGameBoard(cards)
     }
     
     /**
