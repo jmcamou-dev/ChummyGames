@@ -338,10 +338,11 @@ class MemoryMatchUIController {
         
         // Create card elements
         cards.forEach(card => {
+            console.log("click_card_id "+card.id.toString())
             const cardElement = DOMUtils.createElement('div', {
                 className: `memory-card ${card.state}`,
                 'data-id': card.id,
-                onClick: (e) => this.handleCardClick(e)
+                onClick: (e) => this.handleCardClick(e.target)
             });
             
             const cardFront = DOMUtils.createElement('div', {
