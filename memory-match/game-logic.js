@@ -122,12 +122,14 @@ class MemoryMatchGame {
     flipCard(cardId) {
         // Check if game is active and it's the player's turn
         if (!this.gameActive || this.playerNumber !== this.currentPlayer || this.flippedCards.length >= 2) {
+            console.log("flipCard-1"+(!this.gameActive ).toString()+(this.playerNumber !== this.currentPlayer).toString()+(this.flippedCards.length >= 2).toString())
             return { valid: false };
         }
         
         // Find the card
         const cardIndex = this.cards.findIndex(card => card.id === cardId);
         if (cardIndex === -1) {
+            console.log("flipCard-2")
             return { valid: false };
         }
         
@@ -135,6 +137,7 @@ class MemoryMatchGame {
         
         // Check if card is already revealed or matched
         if (card.state !== this.CARD_STATES.HIDDEN) {
+            console.log("flipCard-3")
             return { valid: false };
         }
         
@@ -152,10 +155,13 @@ class MemoryMatchGame {
             nextPlayer: this.currentPlayer
         };
         
+        console.log("flipCard-4")
         // Check if two cards are flipped
         if (this.flippedCards.length === 2) {
+            console.log("flipCard-5")
             // Check for a match
             if (this.flippedCards[0].symbol === this.flippedCards[1].symbol) {
+                console.log("flipCard-6")
                 // Match found
                 this.flippedCards.forEach(flippedCard => {
                     const matchedCard = this.cards.find(c => c.id === flippedCard.id);
@@ -178,6 +184,7 @@ class MemoryMatchGame {
                 // Clear flipped cards
                 this.flippedCards = [];
             } else {
+                console.log("flipCard-7")
                 // No match, end turn after delay
                 result.turnComplete = true;
                 result.nextPlayer = this.currentPlayer === 1 ? 2 : 1;
@@ -186,6 +193,7 @@ class MemoryMatchGame {
         
         // Check if game is complete
         if (this.matchedPairs === this.difficulty.pairs) {
+            console.log("flipCard-9")
             this.gameActive = false;
             result.gameComplete = true;
             result.playerScore = this.playerScore;
@@ -195,11 +203,14 @@ class MemoryMatchGame {
             if (this.playerNumber === 1) {
                 result.winner = this.playerScore > this.opponentScore ? 1 : 
                                 this.playerScore < this.opponentScore ? 2 : 0; // 0 for tie
+                                console.log("flipCard-10")
             } else {
                 result.winner = this.opponentScore > this.playerScore ? 1 : 
                                 this.opponentScore < this.playerScore ? 2 : 0;
+                                console.log("flipCard-11")
             }
         }
+        console.log("flipCard-12")
         
         return result;
     }
