@@ -367,7 +367,9 @@ class MemoryMatchUIController {
         // Attempt to flip the card
         const result = this.game.flipCard(cardId);
         
+        console.log("CLICKEDED")
         if (result.valid) {
+            console.log("CLICKEDED-1")
             // Update card appearance
             cardElement.className = 'memory-card revealed';
             
@@ -403,7 +405,6 @@ class MemoryMatchUIController {
                 }
             }
         }
-        this.renderGameBoard(cards)
     }
     
     /**
