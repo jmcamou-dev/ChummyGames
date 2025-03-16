@@ -126,7 +126,8 @@ class MemoryMatchFirebaseService {
             
             // Reset all revealed but not matched cards to hidden
             const cards = gameData.cards.map(card => {
-                if (card.state === 'revealed') {
+                if (card.state === 'revealed' && !gameData.cards.some(c => 
+                    c.id !== card.id && c.state === 'revealed' && c.symbol === card.symbol)) {
                     return { ...card, state: 'hidden' };
                 }
                 return card;

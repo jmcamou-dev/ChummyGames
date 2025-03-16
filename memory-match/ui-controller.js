@@ -338,11 +338,10 @@ class MemoryMatchUIController {
         
         // Create card elements
         cards.forEach(card => {
-            console.log("click_card_id "+card.id.toString())
             const cardElement = DOMUtils.createElement('div', {
                 className: `memory-card ${card.state}`,
                 'data-id': card.id,
-                onClick: (e) => this.handleCardClick(e.target)
+                onClick: (e) => this.handleCardClick(e.currentTarget)
             });
             
             const cardFront = DOMUtils.createElement('div', {
@@ -356,7 +355,7 @@ class MemoryMatchUIController {
             this.elements.gameBoard.appendChild(cardElement);
         });
     }
-            
+    
     /**
      * Handle card click
      * @param {HTMLElement} cardElement - The clicked card element
@@ -364,14 +363,11 @@ class MemoryMatchUIController {
     handleCardClick(cardElement) {
         // Get card ID
         const cardId = cardElement.getAttribute('data-id');
-        console.log("handleCardClick_1 "+cardId.toString())
         
         // Attempt to flip the card
         const result = this.game.flipCard(cardId);
         
-        console.log("handleCardClick_2")
         if (result.valid) {
-            console.log("handleCardClick_3")
             // Update card appearance
             cardElement.className = 'memory-card revealed';
             
@@ -381,6 +377,19 @@ class MemoryMatchUIController {
             // If turn is complete, we'll let Firebase trigger the end of turn
             if (result.turnComplete) {
                 this.elements.status.textContent = 'No match! Waiting...';
+                
+                // Ensure the turn ends even if Firebase doesn't properly trigger
+                // This is a backup mechanism to prevent the game from getting stuck
+                if (this.turnEndTimeout) {
+                    clearTimeout(this.turnEndTimeout);
+                }
+                
+                this.turnEndTimeout = setTimeout(() => {
+                    const pendingTurnEnd = {
+                        nextPlayer: result.nextPlayer
+                    };
+                    this.processTurnEnd(pendingTurnEnd);
+                }, 3000); // Allow more time than the normal delay
             }
             
             // If match found
@@ -455,6 +464,8 @@ class MemoryMatchUIController {
         
         this.turnEndTimeout = setTimeout(() => {
             this.firebaseService.endTurn(this.game.gameId, pendingTurnEnd.nextPlayer);
+            // Clear any flipped cards in the local game state to ensure sync with Firebase
+            this.game.flippedCards = [];
         }, 1500); // Delay to allow players to see the cards
     }
     
@@ -469,6 +480,9 @@ class MemoryMatchUIController {
                 this.updateScoreDisplay();
             }
             
+            // Backup for any pending turn endings
+            const oldCurrentPlayer = this.game.currentPlayer;
+            
             // Update game state
             this.game.updateFromData(gameData);
             
@@ -478,10 +492,12 @@ class MemoryMatchUIController {
             }
             
             // Process pending turn end if it exists
-            if (gameData.pendingTurnEnd && 
-                ((this.game.playerNumber === 1 && gameData.currentPlayer === 1) ||
-                    (this.game.playerNumber === 2 && gameData.currentPlayer === 2))) {
-                this.processTurnEnd(gameData.pendingTurnEnd);
+            if (gameData.pendingTurnEnd) {
+                // Only the current player should process the turn end
+                if ((this.game.playerNumber === 1 && oldCurrentPlayer === 1) ||
+                    (this.game.playerNumber === 2 && oldCurrentPlayer === 2)) {
+                    this.processTurnEnd(gameData.pendingTurnEnd);
+                }
             }
             
             // Check if opponent just joined
@@ -510,7 +526,7 @@ class MemoryMatchUIController {
             }
             
             // Check for game completion
-            if (gameData.matchedPairs === this.game.difficulty.pairs / 2) {
+            if (gameData.matchedPairs === this.game.difficulty.pairs) {
                 let player1Score = gameData.player1Score || 0;
                 let player2Score = gameData.player2Score || 0;
                 
@@ -546,12 +562,44 @@ class MemoryMatchUIController {
     }
     
     /**
+     * Handle network disconnection and reconnection
+     * Ensures the game can continue if a player disconnects temporarily
+     */
+    handleReconnection() {
+        if (this.game.gameId) {
+            // Reestablish connection with game
+            this.firebaseService.database.ref(`memory-match/games/${this.game.gameId}`).once('value', (snapshot) => {
+                const gameData = snapshot.val();
+                if (gameData) {
+                    // Update local game state
+                    this.game.updateFromData(gameData);
+                    
+                    // Update UI
+                    this.updateCardStates(gameData.cards);
+                    this.updateScoreDisplay();
+                    this.updateTimerDisplay(gameData.timeRemaining);
+                    
+                    // Update player connection status
+                    const playerField = this.game.playerNumber === 1 ? 'player1Connected' : 'player2Connected';
+                    this.firebaseService.database.ref(`memory-match/games/${this.game.gameId}/${playerField}`).set(true);
+                }
+            });
+        }
+    }
+    
+    /**
      * Clean up when leaving the game
      */
     cleanup() {
         if (this.turnEndTimeout) {
             clearTimeout(this.turnEndTimeout);
             this.turnEndTimeout = null;
+        }
+        
+        // Mark player as disconnected
+        if (this.game.gameId) {
+            const playerField = this.game.playerNumber === 1 ? 'player1Connected' : 'player2Connected';
+            this.firebaseService.database.ref(`memory-match/games/${this.game.gameId}/${playerField}`).set(false);
         }
         
         this.game.cleanup();
